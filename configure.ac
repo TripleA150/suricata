@@ -2292,6 +2292,32 @@ fi
             CPPFLAGS="${CPPFLAGS} -I$NDPI_HOME/src/include"
             NDPI_LIB="$NDPI_HOME/src/lib/libndpi.a"
             AC_SUBST([NDPI_LIB])
+
+            # see plugins/ndpi/ndpi-compat.h for the supported releases
+            AC_MSG_CHECKING([for nDPI 4.12 or later])
+            AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+                #include "ndpi_define.h"
+                #if NDPI_MAJOR < 4 || (NDPI_MAJOR == 4 && NDPI_MINOR < 12)
+                #error "nDPI too old"
+                #endif
+            ]], [[]])],
+                [AC_MSG_RESULT([yes])],
+                [AC_MSG_RESULT([no])
+                 AC_MSG_ERROR([the nDPI plugin requires nDPI 4.12 or later; make sure the nDPI source tree at $NDPI_HOME has been configured])])
+            AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+                #include "ndpi_define.h"
+                #if NDPI_MAJOR == 6 && NDPI_MINOR == 0
+                #error "nDPI 6.0"
+                #endif
+            ]], [[]])], [],
+                [AC_MSG_WARN([nDPI 6.0 can produce malformed JSON for the EVE output, use nDPI 6.1 or later])])
+            AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+                #include "ndpi_define.h"
+                #if NDPI_MAJOR > 6
+                #error "untested nDPI release"
+                #endif
+            ]], [[]])], [],
+                [AC_MSG_WARN([nDPI at $NDPI_HOME is newer than 6.x, the plugin has not been tested with it])])
         else
             AC_MSG_RESULT(not found)
             enable_ndpi="no"
